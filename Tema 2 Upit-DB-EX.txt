@@ -1,0 +1,262 @@
+020-Upit-db-ex
+
+/*1. Scrieti o interogare pentru a afisa numele, prenumele, anul de studiu si data nasterii pentru toti studentii. Ordonati rezultatele dupa nume si prenume.*/
+
+SELECT nume, prenume, an, data_nastere
+FROM studenti
+ORDER BY nume, prenume;
+
+/*2. Afisati nume, prenume, bursa si jumatate din valoarea bursei studentilor la care a fost adaugat in prealabil 100 (aveti in vedere si precendenta operatorilor).*/
+
+SELECT nume, prenume, bursa, bursa / 2 AS jumatate_bursa
+FROM studenti
+
+/*3. Scrieti o interogare care sa afiseze in mod unic valoarea burselor.*/
+
+SELECT DISTINCT bursa
+FROM studenti
+
+/*4. Afisati numele concatenat cu prenumele, urmat de virgula si anul de studiu. Ordonati crescator dupa anul de studiu. Denumiti coloana: “Studenti / ani de studiu”.*/
+
+SELECT CONCAT(nume, ' ', prenume, ', ', an) AS "Studenti / ani de studiu"
+FROM studenti
+ORDER BY an ASC;
+
+/*5. Afisati studentii nascuti intre 1 martie 1996 si 10 noiembrie 1997. Ordonati descrescator dupa anul de studiu.*/
+
+SELECT nume, prenume, an, data_nastere
+FROM studenti
+WHERE data_nastere BETWEEN '1996-03-01' AND '1997-11-10'
+ORDER BY an DESC;
+
+/*6. Afisati toti studentii nascuti in 1996.*/
+
+SELECT nume, prenume, an, data_nastere
+FROM studenti
+WHERE YEAR(data_nastere) = 1996;
+
+/*7. Afisati studentii ce nu iau bursa.*/
+
+SELECT nume, prenume, an, data_nastere
+FROM studenti
+WHERE bursa = 0;
+
+/*8. Afisati studentii care iau bursa si sunt in anii 2 sau 3 de studiu. Ordonati alfabetic crescator dupa nume si descrescator dupa prenume.*/
+
+SELECT nume, prenume, an, data_nastere
+FROM studenti
+WHERE bursa > 0 AND an IN (2, 3)
+ORDER BY nume ASC, prenume DESC;
+
+/*9. Afisati studentii care iau bursa precum si valoarea bursei daca aceasta ar fi marita cu 25%. Valoarea calculata va fi rotunjita (fara zecimale).*/
+
+SELECT nume, prenume, bursa, ROUND(bursa * 1.25) AS bursa_marita
+FROM studenti;
+
+/*10. Afisati studentii al caror nume incepe cu B si nu sunt in anul 1 de studiu.*/
+
+SELECT nume, prenume, an, data_nastere
+FROM studenti
+WHERE nume LIKE 'B%' AND an <> 1;
+
+/*11. Afisati toate informatiile despre studentii care au doua aparitii ale literei ‘i’ in prenume.*/
+
+SELECT *
+FROM studenti
+WHERE prenume LIKE '%i%i%i%';
+
+/*12. Afisati toate informatiile despre studentii al caror prenume este “Mihaela”, “Mihai” sau “Anca”.*/
+
+SELECT *
+FROM studenti
+WHERE prenume IN ('Mihaela', 'Mihai', 'Anca');
+
+/*13. Afisati numele si prenumele profesorilor al caror prenume se termina cu litera ‘n’.*/
+
+SELECT nume, prenume
+FROM profesori
+WHERE prenume LIKE '%n';
+
+/*14. Scrieti o interogare pentru a afisa data de astazi in forma an / luna / zi. Etichetati coloana cu “Astazi”.*/
+
+SELECT DATE_FORMAT(CURDATE(), '%Y / %m / %d') AS Astazi;
+
+/*15. Pentru fiecare student afisati numele, prenumele, data de nastere si numarul de luni intre data curenta si data nasterii.*/
+
+SELECT nume, prenume, data_nastere, PERIOD_DIFF(DATE_FORMAT(CURDATE(), '%Y%m'), DATE_FORMAT(data_nastere, '%Y%m')) AS numar_luni
+FROM studenti;
+
+/*16. Afisati ziua din saptamana in care s-a nascut fiecare student.*/
+
+SELECT nume, prenume, data_nastere, DAYNAME(data_nastere) AS ziua_nasterii
+FROM studenti;
+
+/*17. Folosind concatenarea obtineti o coloana de forma ‘Elevul <Prenume> este in grupa <grupa>’.*/
+
+SELECT CONCAT('Elevul ', prenume, ' este în grupa ', grupa) AS descriere
+FROM studenti;
+
+/*18. Afisati valoarea bursei pe 10 caractere completand valoarea numerica cu caracterul $. Doar pentru studentii ce au bursa.*/
+
+SELECT CONCAT('$', LPAD(bursa, 10, '$')) AS valoare_bursa
+FROM studenti
+WHERE bursa > 0;
+
+/*19. Pentru profesorii al caror nume începe cu T, afisati numele cu prima litera mica si restul mari, precum si lungimea (nr. de caractere a) numelui.*/
+
+SELECT CONCAT(LOWER(LEFT(nume, 1)), UPPER(SUBSTRING(nume, 2))) AS nume_formatat, LENGTH(nume) AS lungime_nume
+FROM profesori
+WHERE nume LIKE 'T%';
+
+/*20. Pentru fiecare student afisati numele, data de nastere, data la care studentul urmeaza sa isi sarbatoreasca ziua de nastere in anul curent.*/
+
+SELECT nume, data_nastere, CONCAT(YEAR(CURDATE()), '-', MONTH(data_nastere), '-', DAY(data_nastere)) AS data_sarbatorire
+FROM studenti;
+
+/*21. Ordonati studentii care nu iau bursa în functie de luna cand au fost nascuti; se va afisa doar numele, prenumele si luna corespunzatoare datei de nastere.*/
+
+SELECT nume, prenume, MONTH(data_nastere) AS luna_nastere
+FROM studenti
+WHERE bursa = 0
+ORDER BY MONTH(data_nastere);
+
+/*22. Afisati pentru fiecare student numele, varsta acestuia la data curenta sub forma ani | luni | zile.*/
+
+SELECT nume, CONCAT(TIMESTAMPDIFF(YEAR, data_nastere, CURDATE()), ' ani | ', TIMESTAMPDIFF(MONTH, data_nastere, CURDATE()) % 12, ' luni | ', DATEDIFF(CURDATE(), data_nastere) % 30, ' zile') AS varsta
+FROM studenti;
+
+/*23. Presupunand ca în urmatoarea luna bursa de 450 RON se mareste cu 10%, cea de 350 RON cu 15% si cea de 250 RON cu 20%, afisati pentru fiecare student numele acestuia, data corespunzatoare primei zile din luna urmatoare si valoarea bursei pe care o va încasa luna urmatoare. Pentru cei care nu iau bursa, se va afisa valoarea 0.*/
+
+SELECT nume, DATE_FORMAT(DATE_ADD(DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 1 MONTH), '01-%m-%Y'), INTERVAL -1 DAY), '%d-%m-%Y') AS data_luna_urmatoare, 
+CASE
+    WHEN bursa = 450 THEN ROUND(bursa * 1.1)
+    WHEN bursa = 350 THEN ROUND(bursa * 1.15)
+    WHEN bursa = 250 THEN ROUND(bursa * 1.2)
+    ELSE 0
+END AS valoare_bursa_luna_urmatoare
+FROM studenti;
+
+/*24. Pentru studentii bursieri (doar pentru ei) afisati numele studentului si bursa in stelute: fiecare steluta valoreaza 50 RON. In tabel, alineati stelutele la dreapta.*/
+
+SELECT nume, RPAD(CONCAT(REPEAT('*', ROUND(bursa/50))), 10, ' ') AS valoare_bursa
+FROM studenti
+WHERE bursa > 0;
+
+/*25. Afisati studentii, notele lor, cursul si profesorii ce au pus notele.*/
+
+SELECT s.nume AS nume_student, n.nota, c.titlu_curs AS nume_curs, p.nume AS nume_profesor
+FROM studenti s
+JOIN note n ON s.numar_matricol = n.numar_matricol
+JOIN cursuri c ON c.id_curs = c.titlu_curs
+JOIN profesori p ON p.id_prof = d.id_prof;
+
+/*26. Afisati studenţii care au luat nota 10 la materia 'Fundamentele programarii'.*/
+
+SELECT s.nume AS nume_student
+FROM studenti s
+JOIN note n ON s.nr_matricol = n.nr_matricol
+JOIN cursuri c ON n.id_curs = c.id_curs
+WHERE c.titlu_curs = 'Fundamentele programarii' AND n.valoare = 10;
+
+/*27. Afisaţi profesorii (numele şi prenumele) impreuna cu cursurile pe care fiecare le ţine.*/
+
+SELECT p.nume AS nume_profesor, p.prenume AS prenume_profesor, c.titlu_curs AS nume_curs
+FROM profesori p
+JOIN diactic d ON p.id_prof = d.id_prof;
+
+/*28. Modificati interogarea de la punctul 27 asa incat sa includeti si profesorii ce nu tin niciun curs.*/
+
+SELECT p.nume AS nume_profesor, p.prenume AS prenume_profesor, c.titlu_curs AS nume_curs
+FROM profesori p
+LEFT JOIN didactic d ON p.id_prof = d.id_prof;
+
+/*29. Modificari interogarare de la punctul 27 asa incat sa afisati si cursurile ce nu au inca alocat un profesor.*/
+
+SELECT p.nume AS nume_profesor, p.prenume AS prenume_profesor, c.titlu_curs AS nume_curs
+FROM profesori p
+RIGHT JOIN didactic d ON p.id_prof = d.id_prof;
+
+/*30. Modificaţi interogarea de la punctul 27 astfel încat sa fie afişaţi atat profesorii care nu au nici un curs alocat cat şi cursurile care nu sunt înca predate de nici un profesor.*/
+
+
+/*31. In tabela studenti exista studenţi care s-au nascut în aceeasi zi a saptamanii. De exemplu, Nedelcu Isabela şi Mazureac Cosmin s-au nascut amandoi într-o zi de sambata. Construiti o lista cu studentii care s-au nascut in aceeaşi zi grupandu-i doi cate doi în ordine alfabetica a numelor (de exemplu in rezultat va apare combinatia Mazureac-Nedelcu dar nu va apare şi Nedelcu -Mazureac). Lista va trebui sa conţina doar numele de familie a celor doi împreuna cu ziua în care cei doi s-au nascut. Evident, daca exista şi alţi studenti care s-au nascut sambata, vor apare si ei in combinatie. Lista va fi ordonata în funcţie de ziua saptamanii în care s-au nascut.*/
+
+SELECT CONCAT_WS(' - ', s1.nume, s2.nume) AS combinatie, DAYNAME(s1.data_nastere) AS ziua_nasterii
+FROM studenti s1
+JOIN studenti s2 ON s1.nume < s2.nume AND DAYOFWEEK(s1.data_nastere) = DAYOFWEEK(s2.data_nastere)
+ORDER BY DAYOFWEEK(s1.data_nastere);
+
+/*32. Afisati posibilele prietenii dintre studenti si profesori. Un profesor si un student se pot imprieteni daca numele lor de familie are acelasi numar de litere.*/
+
+SELECT s.nume AS nume_student, p.nume AS nume_profesor
+FROM studenti s, profesori p
+WHERE LENGTH(s.nume) = LENGTH(p.nume);
+
+/*33. Afisati denumirile cursurilor la care s-au pus note cel mult egale cu 8 (<=8).*/
+
+SELECT c.nume AS nume_curs
+FROM cursuri c
+JOIN note n ON c.id_curs = n.id_curs
+WHERE n.valoare <= 8;
+
+/*34. Sa se afiseze studentii care au luat nota 7 sau nota 10 la Fundamentele programarii intr-o zi de joi.*/
+
+SELECT s.nume AS nume_student
+FROM studenti s
+JOIN note n ON s.nr_matricol = n.nr_matricol
+JOIN cursuri c ON n.id_curs = c.id_curs
+WHERE c.nume = 'Fundamentele programarii' AND n.valoare IN (7, 10) AND DAYNAME(n.data_notare) = 'Thursday';
+
+/*35. Afisati numarul de studenti din fiecare an.*/
+
+SELECT an, COUNT(*) AS numar_studenti
+FROM studenti
+GROUP BY an;
+
+/*36. Afisati numarul de studenti din fiecare grupa a fiecarui an de studiu si specificati cati dintre acestia sunt bursieri.*/
+
+SELECT an, grupa, COUNT(*) AS numar_studenti, SUM(CASE WHEN bursa > 0 THEN 1 ELSE 0 END) AS numar_bursieri
+FROM studenti
+GROUP BY an, grupa;
+
+/*37. Afisati suma totala cheltuita de facultate pentru acordarea burselor (raportat la o luna).*/
+
+SELECT SUM(bursa) AS suma_totala
+FROM studenti;
+
+/*38. Afisati valoarea bursei/cap de student (se considera ca studentii care nu sunt bursieri primesc 0 RON); altfel spus: cat se cheltuieste în medie pentru un student?*/
+
+SELECT AVG(COALESCE(bursa, 0)) AS valoare_medie_bursa
+FROM studenti;
+
+/*39. Afisati numarul de note de fiecare fel (cate note de 10, cate de 9,etc.). Ordonati descrescator dupa valoarea notei.*/
+
+SELECT valoare, COUNT(*) AS numar_note
+FROM note
+GROUP BY valoare
+ORDER BY valoare DESC;
+
+/*40. Afisati numele studentilor care iau cea mai mare bursa acordata.*/
+
+SELECT nume
+FROM studenti
+WHERE bursa = (SELECT MAX(bursa) FROM studenti);
+
+/*41. Identificati studentii a caror medie este mai mare decat media tuturor notelor din baza de date. Afisati numele si media acestora.*/
+
+SELECT s.nume AS nume_student, AVG(n.valoare) AS medie
+FROM studenti s, note n
+WHERE s.nr_matricol = n.nr_matricol
+GROUP BY s.nr_matricol
+HAVING AVG(n.valoare) > (SELECT AVG(valoare) FROM note);
+
+/*42. Afisati numele si media primelor trei studenti ordonati descrescator dupa medie.*/
+
+SELECT s.nume AS nume_student, AVG(n.valoare) AS medie
+FROM studenti s, note n
+WHERE s.nr_matricol = n.nr_matricol
+GROUP BY s.nr_matricol
+ORDER BY medie DESC
+LIMIT 3;
+
+/*43. Afişaţi toţi studenţii care au în an cu ei macar un coleg care sa fie mai mic ca ei (vezi data naşterii).*/
